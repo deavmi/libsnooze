@@ -87,7 +87,7 @@ public class Event
 		return pipePair;
 	}
 
-	public final void notify()
+	public final void notifyAll()
 	{
 		/* Lock the pipe-pairs */
 		pipesLock.lock();
@@ -168,5 +168,5 @@ unittest
 	// TODO: Add assert to check
 
 	/* Wake up all sleeping on this event */
-	event.notify();
+	event.notifyAll();
 }

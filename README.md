@@ -50,5 +50,5 @@ Now on the main thread we can do the following to wakeup waiting threads:
 
 ```d
 /* Wake up all sleeping on this event */
-event.notify();
+event.notifyAll();
 ```
