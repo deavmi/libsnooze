@@ -1,9 +1,17 @@
-<center>
-    <img src="branding/logo.png" width="20%" height="20%"></img>
-    <h1>libsnooze</h1>
-</center>
+<p align="center">
+<img src="branding/logo.png" width=220>
+</p>
 
-<!-- <hr> -->
+<br>
+
+<h1 align="center">libsnooze</h1>
+
+<h3 align="center"><i><b>A wait/notify mechanism for D</i></b></h3>
+
+---
+
+<br>
+<br>
 
 ## Usage
 
