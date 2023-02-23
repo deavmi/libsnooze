@@ -1,4 +1,4 @@
-module libsnooze.app;
+module libsnooze.event;
 
 import libsnooze.clib : pipe, write, read;
 import core.thread : Thread;
