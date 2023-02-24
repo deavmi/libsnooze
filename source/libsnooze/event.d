@@ -14,6 +14,8 @@ public class Event
 	private int[2][Thread] pipes;
 	private Mutex pipesLock;
 
+	private bool nonFail = false;
+
 	this()
 	{
 		internalInit();
@@ -25,6 +27,10 @@ public class Event
 		{
 			// TODO: Switch to eventfd in the future
 			initPipe();
+		}
+		else version(Windows)
+		{
+			throw SnoozeError("Platform Windows is not supported");
 		}
 		else
 		{
@@ -61,8 +67,6 @@ public class Event
 		int readFD = pipePair[0];
 		byte singleBuff;
 		read(readFD, &singleBuff, 1);
-
-
 	}
 
 	private int[2] pipeExistenceEnsure(Thread thread)
@@ -87,20 +91,63 @@ public class Event
 		return pipePair;
 	}
 
-	public final void notifyAll()
+	/** 
+	 * Wakes up a single thread specified
+	 *
+	 * Params:
+	 *   thread = the Thread to wake up
+	 */
+	public final void notify(Thread thread)
 	{
+		// TODO: Implement me
+		// TODO: Throw error if the thread is not found
+
 		/* Lock the pipe-pairs */
 		pipesLock.lock();
 
-		/* Loop through each pipe-pair */
-		foreach(int[2] pipePair; pipes)
+		/* If the thread provided is wait()-ing on this event */
+		if(thread in pipes)
 		{
+			/* Obtain the pipe pair for this thread */
+			int[2] pipePair = pipes[thread];
+
 			/* Obtain the write FD */
 			int pipeWriteEnd = pipePair[1];
 
 			/* Write a single byte to it */
 			byte wakeByte = 69;
 			write(pipeWriteEnd, &wakeByte, 1); // TODO: Collect status and if bad, unlock, throw exception
+		}
+		/* If the thread provided is NOT wait()-ing on this event */
+		else
+		{
+			// TODO: Make this error configurable, maybe a non-fail mode should ne implementwd
+			if(!nonFail)
+			{
+				/* Unlock the pipe-pairs */
+				pipesLock.unlock();
+
+				throw new SnoozeError("Provided thread has yet to call wait() atleast once");
+			}	
+		}
+
+		/* Unlock the pipe-pairs */
+		pipesLock.unlock();
+	}
+
+	/** 
+	 * Wakes up all threads waiting on this event
+	 */
+	public final void notifyAll()
+	{
+		/* Lock the pipe-pairs */
+		pipesLock.lock();
+
+		/* Loop through each thread */
+		foreach(Thread curThread; pipes.keys())
+		{
+			/* Notify the current thread */
+			notify(curThread);
 		}
 
 		/* Unlock the pipe-pairs */
@@ -169,4 +216,39 @@ unittest
 
 	/* Wake up all sleeping on this event */
 	event.notifyAll();
+
+	/* Wait for all threads to exit */
+	thread1.join();
+	thread2.join();
+}
+
+unittest
+{
+	import std.conv : to;
+	import core.thread : dur;
+
+	Event event = new Event();
+
+	class MyThread : Thread
+	{
+		this()
+		{
+			super(&worker);
+		}
+
+		public void worker() {}
+	}
+	Thread thread1 = new MyThread();
+
+	try
+	{
+		/* Wake up a thread which isn't waiting (or ever registered) */
+		event.notify(thread1);
+
+		assert(false);
+	}
+	catch(SnoozeError e)
+	{
+		assert(true);
+	}
 }
