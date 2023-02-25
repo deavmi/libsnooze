@@ -264,6 +264,7 @@ public class Event
 unittest
 {
 	import std.conv : to;
+	import std.stdio : writeln;
 
 	Event event = new Event();
 
