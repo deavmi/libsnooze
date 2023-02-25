@@ -264,10 +264,6 @@ public class Event
 unittest
 {
 	import std.conv : to;
-	import core.thread : dur;
-	import std.stdio : writeln;
-	import libsnooze.clib : select, fd_set, fdSetZero, fdSetSet;
-
 
 	Event event = new Event();
 
@@ -312,9 +308,7 @@ unittest
 unittest
 {
 	import std.conv : to;
-	import core.thread : dur;
 	import std.stdio : writeln;
-	import libsnooze.clib : select, fd_set, fdSetZero, fdSetSet;
 
 	Event event = new Event();
 
