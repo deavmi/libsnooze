@@ -10,9 +10,13 @@ version(release)
 	import libsnooze.clib : select, fd_set, fdSetZero, fdSetSet;
 	import libsnooze.clib : timeval, time_t, suseconds_t;
 }
-import clib : pipe, write, read;
+else
+{
+	import clib : pipe, write, read;
 import clib : select, fd_set, fdSetZero, fdSetSet;
 import clib : timeval, time_t, suseconds_t;
+}
+
 import core.thread : Thread, Duration, dur;
 import core.sync.mutex : Mutex;
 import libsnooze.exceptions : SnoozeError;
