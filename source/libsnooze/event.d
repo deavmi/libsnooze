@@ -1,5 +1,8 @@
 module libsnooze.event;
 
+// TODO: Would be nice if this built without unit tests failing
+// ... so I'd like libsnooze.clib to work as my IDE picks up on
+// ... it then
 import clib : pipe, write, read;
 import clib : select, fd_set, fdSetZero, fdSetSet;
 import clib : timeval, time_t, suseconds_t;
