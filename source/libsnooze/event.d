@@ -9,6 +9,7 @@ import clib : timeval, time_t, suseconds_t;
 import core.thread : Thread, Duration, dur;
 import core.sync.mutex : Mutex;
 import libsnooze.exceptions : SnoozeError;
+import std.conv : to;
 
 public class Event
 {
@@ -140,8 +141,13 @@ public class Event
 			// TODO: Perform read now to clear sttaus for next wait()
 			/* Get the read end and read 1 byte (won't block) */
 			byte singleBuff;
-			read(readFD, &singleBuff, 1);
-			// TODO: ENsure no IO exception
+			ptrdiff_t readCount = read(readFD, &singleBuff, 1);
+
+			/* If we did not read 1 byte then there was an error (either 1 or -1) */
+			if(readCount != 1)
+			{
+				throw new SnoozeError("Error reading pipe fd '"~to!(string)(readFD)~"' when trying to wait()");
+			}
 
 			return true;
 		}
