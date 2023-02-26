@@ -336,3 +336,34 @@ unittest
 		assert(true);
 	}
 }
+
+unittest
+{
+	Event event = new Event();
+
+	class TestThread : Thread
+	{
+		private Event event;
+
+		this(Event event)
+		{
+			super(&worker);
+			this.event = event;
+		}
+
+		public void worker()
+		{
+			writeln("("~to!(string)(Thread.getThis().id())~") Thread is waiting...");
+
+			/* Here we test timeout, we never notify so this should timeout and return false */
+			assert(event.wait(dur!("seconds")(2)) == false);
+			writeln("("~to!(string)(Thread.getThis().id())~") Thread is waiting... [done]");
+		}
+	}
+
+	TestThread thread1 = new TestThread(event);
+	thread1.start();
+
+	/* Wait for the thread to exit */
+	thread1.join();
+}
