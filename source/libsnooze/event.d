@@ -136,6 +136,12 @@ public class Event
 			return false;
 		}
 		// TODO: Check the -1 case
+		/* On error */
+		else if(status == -1)
+		{
+			throw new SnoozeError("Error selecting pipe fd '"~to!(string)(readFD)~"' when trying to wait()"); 
+		}
+		/* On success */
 		else
 		{
 			// TODO: Perform read now to clear sttaus for next wait()
