@@ -7,5 +7,5 @@
 	"license": "LGPL v3.0",
 	"name": "libsnooze",
 	"targetType": "library",
-	"dflags": ["source/libsnooze/clib.c"]
+	"sourceFiles": ["source/libsnooze/clib.c"]
 }
