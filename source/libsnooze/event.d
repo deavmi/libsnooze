@@ -11,6 +11,9 @@ import core.sync.mutex : Mutex;
 import libsnooze.exceptions : SnoozeError;
 import std.conv : to;
 
+/** 
+ * Represents an object you can wait and notify/notifyAll on
+ */
 public class Event
 {
 	/* Array of [readFD, writeFD] pairs/arrays */
