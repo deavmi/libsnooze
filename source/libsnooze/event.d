@@ -3,9 +3,12 @@ module libsnooze.event;
 // TODO: Would be nice if this built without unit tests failing
 // ... so I'd like libsnooze.clib to work as my IDE picks up on
 // ... it then
-import clib : pipe, write, read;
-import clib : select, fd_set, fdSetZero, fdSetSet;
-import clib : timeval, time_t, suseconds_t;
+
+
+
+import libsnooze.clib : pipe, write, read;
+import libsnooze.clib : select, fd_set, fdSetZero, fdSetSet;
+import libsnooze.clib : timeval, time_t, suseconds_t;
 import core.thread : Thread, Duration, dur;
 import core.sync.mutex : Mutex;
 import libsnooze.exceptions : SnoozeError;
@@ -22,6 +25,9 @@ public class Event
 
 	private bool nonFail = false;
 
+	/** 
+	 * Constructs a new Event
+	 */
 	this()
 	{
 		internalInit();
@@ -33,6 +39,7 @@ public class Event
 		{
 			// TODO: Switch to eventfd in the future
 			initPipe();
+			pragma(msg, "Buulding on linux uses the `pipe(int*)` system call");
 		}
 		else version(Windows)
 		{

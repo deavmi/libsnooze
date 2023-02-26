@@ -7,5 +7,10 @@
 	"license": "LGPL v3.0",
 	"name": "libsnooze",
 	"targetType": "library",
-	"sourceFiles": ["source/libsnooze/clib.c"]
+	"buildTypes": {
+		"unittest-cov": {
+			"dflags": ["source/libsnooze/clib.c"]
+		}
+	}
+	
 }
