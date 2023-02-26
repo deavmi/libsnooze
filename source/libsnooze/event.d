@@ -52,7 +52,7 @@ public class Event
 	 */
 	public final void wait()
 	{
-		wait(dur!("seconds")(0));
+		wait(null);
 	}
 
 	private int[2] pipeExistenceEnsure(Thread thread)
@@ -79,7 +79,7 @@ public class Event
 	}
 
 	// NOTE: Returns true on woken, false on timeout
-	private final bool wait(timeval timestruct)
+	private final bool wait(timeval* timestruct)
 	{
 		/* Get the thread object (TID) for the calling thread */
 		Thread callingThread = Thread.getThis();
@@ -122,13 +122,20 @@ public class Event
 		 * if a timeout was specified we can then return after
 		 * said timeout.
 		 */
-		int status = select(readFD+1, &readFDs, null, null, &timestruct);
+		int status = select(readFD+1, &readFDs, null, null, timestruct);
 
 		/** 
-		 * If timeout was 0 then it blocks till readable and hence the
-		 * status would then be non-zero. The only way it can be `0` is if
-		 * the timeout was non-zero meaning it returned after timing out and
-		 * nothing changed in any fd_set(s) (nothing became readable)
+		 * The number of Fds (1 in this case) ready for reading is returned.
+		 *
+		 * This means that if we have:
+		 *
+		 * 1. `1` returned that then `readFD` is available for reading
+		 *
+		 * If timeout was 0 (timeval* is NULL) then it blocks till readable
+		 * and hence the status would then be non-zero. The only way it can
+		 * be `0` is if the timeout was non-zero (timeval* non-NULL) meaning
+		 * it returned after timing out and nothing changed in any fd_set(s)
+		 * (nothing became readable)
 		 */
 		if(status == 0)
 		{
@@ -191,7 +198,7 @@ public class Event
 		timestruct.tv_usec = microseconds;
 
 		/* Call wait with this time duration */
-		return wait(timestruct);
+		return wait(&timestruct);
 	}
 
 	/** 

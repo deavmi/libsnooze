@@ -10,4 +10,3 @@ void fdSetSet(int fd, fd_set* set)
 {
     FD_SET(fd, set);
 }
-
