@@ -139,10 +139,8 @@ public class Event
 		 */
 		if(status == 0)
 		{
-			// TODO: Handle timeout
 			return false;
 		}
-		// TODO: Check the -1 case
 		/* On error */
 		else if(status == -1)
 		{
@@ -151,7 +149,6 @@ public class Event
 		/* On success */
 		else
 		{
-			// TODO: Perform read now to clear sttaus for next wait()
 			/* Get the read end and read 1 byte (won't block) */
 			byte singleBuff;
 			ptrdiff_t readCount = read(readFD, &singleBuff, 1);
