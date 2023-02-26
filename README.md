@@ -13,6 +13,10 @@
 <br>
 <br>
 
+## API
+
+To see the full documentation (which is always up-to-date) check it out on [DUB](https://libsnooze.dpldocs.info/).
+
 ## Usage
 
 Firstly we create an `Event` which is something that can be notified or awaited on. This is simply accomplished as follows:
