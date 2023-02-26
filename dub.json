@@ -6,5 +6,6 @@
 	"description": "A wait/notify mechanism for D",
 	"license": "LGPL v3.0",
 	"name": "libsnooze",
-	"targetType": "library"
+	"targetType": "library",
+	"dflags": ["source/libsnooze/clib.c"]
 }
