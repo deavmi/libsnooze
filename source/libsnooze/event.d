@@ -261,11 +261,14 @@ public class Event
 	}
 }
 
-unittest
+version(unittest)
 {
 	import std.conv : to;
 	import std.stdio : writeln;
+}
 
+unittest
+{
 	Event event = new Event();
 
 	class TestThread : Thread
@@ -308,9 +311,6 @@ unittest
 
 unittest
 {
-	import std.conv : to;
-	import std.stdio : writeln;
-
 	Event event = new Event();
 
 	class MyThread : Thread
