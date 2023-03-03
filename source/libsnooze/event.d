@@ -224,7 +224,6 @@ public class Event
 	 */
 	public final void notify(Thread thread)
 	{
-		// TODO: Implement me
 		// TODO: Throw error if the thread is not found
 
 		/* Lock the pipe-pairs */
