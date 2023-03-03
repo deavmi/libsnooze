@@ -13,8 +13,8 @@ version(release)
 else
 {
 	import clib : pipe, write, read;
-import clib : select, fd_set, fdSetZero, fdSetSet;
-import clib : timeval, time_t, suseconds_t;
+	import clib : select, fd_set, fdSetZero, fdSetSet;
+	import clib : timeval, time_t, suseconds_t;
 }
 
 import core.thread : Thread, Duration, dur;
