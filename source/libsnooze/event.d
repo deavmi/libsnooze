@@ -73,6 +73,33 @@ public class Event
 		wait(null);
 	}
 
+	/** 
+	 * Ensures that the calling Thread gets a registered
+	 * pipe added for it when called.
+	 *
+	 * This can be useful if one wants to initialize several
+	 * threads that should be able to all be notified and wake up
+	 * on their first call to wait instead of having wait
+	 * ensure the pipe is created on first call.
+	 */
+	public final void ensure()
+	{
+		/* Get the thread object (TID) for the calling thread */
+		Thread callingThread = Thread.getThis();
+
+		/* Lock the pipe-pairs */
+		pipesLock.lock();
+
+		/* Checks if a pipe-pair exists, if not creates it */
+		// TODO: Add a catch here, then unlock, rethrow
+		int[2] pipePair = pipeExistenceEnsure(callingThread);
+
+		/* Unlock the pipe-pairs */
+		pipesLock.unlock();
+	}
+
+
+	// TODO: Make this a method we can call actually
 	private int[2] pipeExistenceEnsure(Thread thread)
 	{
 		int[2] pipePair;
@@ -113,7 +140,7 @@ public class Event
 		pipesLock.unlock();
 
 
-		/* Get the reand-end of the pipe fd */
+		/* Get the read-end of the pipe fd */
 		int readFD = pipePair[0];
 
 		// TODO: IO/queue block using select with a timeout
@@ -185,6 +212,80 @@ public class Event
 		// ... is yet to be called
 
 		
+	}
+
+
+	/** 
+	 * Determines whether this event is ready or not, useful for checking if
+	 * a wait would block if called relatively soon
+	 *
+	 * Returns: true if it would block, false otherwise
+	 *
+	 * TODO: Test this and write a unit test (it has not yet been tested)
+	 */
+	private final bool wouldWait()
+	{
+		/* Would we wait? */
+		bool waitStatus;
+
+		/* Get the thread object (TID) for the calling thread */
+		Thread callingThread = Thread.getThis();
+
+		/* Lock the pipe-pairs */
+		pipesLock.lock();
+
+		/* Checks if a pipe-pair exists, if not creates it */
+		// TODO: Add a catch here, then unlock, rethrow
+		int[2] pipePair = pipeExistenceEnsure(callingThread);
+
+		/* Unlock the pipe-pairs */
+		pipesLock.unlock();
+
+
+		/* Get the read-end of the pipe fd */
+		int readFD = pipePair[0];
+
+		/** 
+		 * Setup the fd_set for read file descriptors
+		 * 
+		 * 1. Initialize the struct with FD_ZERO
+		 * 2. Add the file descriptor of interest i.e. `readFD`
+		 */
+		fd_set readFDs;
+		fdSetZero(&readFDs);
+		fdSetSet(readFD, &readFDs);
+
+		/** 
+		 * Now we set a timeout that is very low so we can return
+		 * very quickly, and then determine if within the deadline
+		 * it became readable ("would not wait") or we exceeded the deadline and it 
+		 * was not readable ("would wait")
+		 */
+		timeval timestruct;
+		timestruct.tv_sec = 0;
+		timestruct.tv_usec = 1;
+		int status = select(readFD+1, &readFDs, null, null, &timestruct);
+
+		/* If we timed out (i.e. "it would wait") */
+		if(status == 0)
+		{
+			return true;
+		}
+		/* TODO: Handle select() errors */
+		else if(status == -1)
+		{
+			// TODO: Handle this
+			return false;
+		}
+		/* If we have a number of fds readable (only 1) (i.e. "it would NOT wait") */
+		else
+		{
+			return false;
+		}
+
+
+
+		// return waitStatus;
 	}
 
 	/** 
