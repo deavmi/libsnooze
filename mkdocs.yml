@@ -1,0 +1,5 @@
+site_name: libsnooze
+theme: alabaster
+
+extra:
+  logo: logo.png
