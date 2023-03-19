@@ -19,6 +19,19 @@ To see the full documentation (which is always up-to-date) check it out on [DUB]
 
 ## Usage
 
+### Importing issues
+
+Currently importing just with `import libsnooze` is broken, we recommend you import as follows:
+
+```d
+import libsnooze.clib;
+import libsnooze;
+```
+
+Which should build!
+
+### Example
+
 Firstly we create an `Event` which is something that can be notified or awaited on. This is simply accomplished as follows:
 
 ```d
