@@ -13,6 +13,8 @@
 <br>
 <br>
 
+[![D](https://github.com/deavmi/libsnooze/actions/workflows/d.yml/badge.svg)](https://github.com/deavmi/libsnooze/actions/workflows/d.yml)
+
 ## API
 
 To see the full documentation (which is always up-to-date) check it out on [DUB](https://libsnooze.dpldocs.info/).
