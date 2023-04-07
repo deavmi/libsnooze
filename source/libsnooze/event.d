@@ -111,7 +111,7 @@ public class Event
 		if(!(thread in pipes))
 		{
 			// TODO: Add a catch here, then unlock then rethrow
-			pipes[thread] = newPipe();  //TODO: If bad (exception)
+			pipes[thread] = newPipe();  //TODO: If bad (exception) use scopre guard too
 		}
 
 		/* Grab the pair */
