@@ -189,6 +189,7 @@ public class Event
 		/* On error */
 		else if(status == -1)
 		{
+			// TODO: Here we need to check for errno (Weekend fix)
 			throw new SnoozeError("Error selecting pipe fd '"~to!(string)(readFD)~"' when trying to wait()"); 
 		}
 		/* On success */
