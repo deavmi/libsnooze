@@ -29,9 +29,35 @@ public final class InterruptedException : SnoozeError
     }
 }
 
-// public final class WaitException : SnoozeError
-// {
+public enum FatalError
+{
+    WAIT_FAILURE,
+    NOTIFY_FAILURE
+}
 
-// }
+public final class FatalException : SnoozeError
+{
+    private FatalError fatalType;
 
-// public final class NotifyException : SnoozeError
+    this(Event e, FatalError fatalType, string extra = "")
+    {
+        string msg;
+        if(fatalType == FatalError.NOTIFY_FAILURE)
+        {
+            msg = "There was an error notifying event '"~e.toString()~"'";
+        }
+        else
+        {
+            msg = "There was an error waiting on the event '"~e.toString()~"'";
+        }
+        msg = msg~extra;
+
+        super(msg);
+        this.fatalType = fatalType;
+    }
+
+    public FatalError getFatalType()
+    {
+        return fatalType;
+    }
+}
