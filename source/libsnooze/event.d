@@ -21,6 +21,7 @@ import core.thread : Thread, Duration, dur;
 import core.sync.mutex : Mutex;
 import libsnooze.exceptions : SnoozeError;
 import std.conv : to;
+import core.stdc.errno;
 
 /** 
  * Represents an object you can wait and notify/notifyAll on
@@ -186,9 +187,25 @@ public class Event
 		{
 			return false;
 		}
-		/* On error */
+		/**
+		 * On error doing `select()`
+		 *
+		 * We check the `errno` as this could be an error resulting
+		 * from an unblock due to a signal having been received, in
+		 * that specific case we don't want to throw an error but rather
+		 * an interrupted exception.
+		 */
 		else if(status == -1)
 		{
+			// Retrieve the kind-of error
+			int errKind = errno();
+
+			version(dbg)
+			{
+				import std.stdio;
+				writeln("select() interrupted, errno: ", errKind);
+			}
+
 			// TODO: Here we need to check for errno (Weekend fix)
 			throw new SnoozeError("Error selecting pipe fd '"~to!(string)(readFD)~"' when trying to wait()"); 
 		}
