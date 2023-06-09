@@ -453,7 +453,7 @@ public class Event
 		if(status != 0)
 		{
 			// Throw an exception is pipe creation failed
-			throw new SnoozeError("Could not initialize the pipe");
+			throw new FatalException(this, FatalError.WAIT_FAILURE, "Could not initialize the pipe");
 		}
 
 		return pipePair;
