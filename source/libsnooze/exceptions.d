@@ -29,12 +29,28 @@ public final class InterruptedException : SnoozeError
     }
 }
 
+/** 
+ * The sub-kind of fatal error
+ */
 public enum FatalError
 {
+    /** 
+     * On error during a call to `wait()`
+     */
     WAIT_FAILURE,
+
+    /** 
+     * On error during a call to `notify()`
+     * or `notifyAll()`
+     */
     NOTIFY_FAILURE
 }
 
+/** 
+ * This exception is thrown during a call to `wait()`,
+ * `notify()` or `notifyAll()` when a fatal error
+ * occurs with the underlying eventing system
+ */
 public final class FatalException : SnoozeError
 {
     private FatalError fatalType;
