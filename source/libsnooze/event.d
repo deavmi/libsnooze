@@ -19,7 +19,7 @@ else
 
 import core.thread : Thread, Duration, dur;
 import core.sync.mutex : Mutex;
-import libsnooze.exceptions : SnoozeError;
+import libsnooze.exceptions;
 import std.conv : to;
 import core.stdc.errno;
 
@@ -68,6 +68,12 @@ public class Event
 
 	/** 
 	 * Wait on this event indefinately
+	 *
+	 * This can throw `InterruptedException` if the
+	 * `wait()` was interrupted for some reason.
+	 *
+	 * `FatalException` is thrown on fatal error with
+	 * the underlying mechanism.
 	 */
 	public final void wait()
 	{
@@ -123,8 +129,22 @@ public class Event
 
 		return pipePair;
 	}
-
-	// NOTE: Returns true on woken, false on timeout
+	
+	/** 
+	 * Waits for the time specified, returning `true`
+	 * if awoken, `false` on timeout (if specified as
+	 * non-zero).
+	 *
+	 * This can throw `InterruptedException` if the
+	 * `wait()` was interrupted for some reason.
+	 *
+	 * `FatalException` is thrown on fatal error with
+	 * the underlying mechanism.
+	 *
+	 * Params:
+	 *   timestruct = the `timeval*` to indicate timeout period
+	 * Returns: `true` if awoken, `false` on timeout
+	 */
 	private final bool wait(timeval* timestruct)
 	{
 		/* Get the thread object (TID) for the calling thread */
@@ -206,8 +226,16 @@ public class Event
 				writeln("select() interrupted, errno: ", errKind);
 			}
 
-			// TODO: Here we need to check for errno (Weekend fix)
-			throw new SnoozeError("Error selecting pipe fd '"~to!(string)(readFD)~"' when trying to wait()"); 
+			// Handle as an interrupt
+			if(errKind == EINTR)
+			{
+				throw new InterruptedException(this);
+			}
+			// Anything else is a legitimate error
+			else
+			{
+				throw new FatalException(this, FatalError.WAIT_FAILURE, "Error selecting pipe fd '"~to!(string)(readFD)~"' when trying to wait(), got errno '"~to!(string)(errKind)); 
+			}
 		}
 		/* On success */
 		else
@@ -219,7 +247,7 @@ public class Event
 			/* If we did not read 1 byte then there was an error (either 1 or -1) */
 			if(readCount != 1)
 			{
-				throw new SnoozeError("Error reading pipe fd '"~to!(string)(readFD)~"' when trying to wait()");
+				throw new FatalException(this, FatalError.WAIT_FAILURE, "Error reading pipe fd '"~to!(string)(readFD)~"' when trying to wait()");
 			}
 
 			return true;
@@ -307,10 +335,18 @@ public class Event
 	}
 
 	/** 
-	 * Waits on the event with a given timeout
+	 * Waits for the time specified, returning `true`
+	 * if awoken, `false` on timeout
+	 *
+	 * This can throw `InterruptedException` if the
+	 * `wait()` was interrupted for some reason.
+	 *
+	 * `FatalException` is thrown on fatal error with
+	 * the underlying mechanism.
 	 *
 	 * Params:
-	 *   duration = the timeout
+	 *   duration = the `Duration` to indicate timeout period
+	 * Returns: `true` if awoken, `false` on timeout
 	 */
 	public final bool wait(Duration duration)
 	{
@@ -337,6 +373,10 @@ public class Event
 
 	/** 
 	 * Wakes up a single thread specified
+	 *
+	 * This can throw a `FatalException`
+	 * if the underlying mechanism fails
+	 * to notify
 	 *
 	 * Params:
 	 *   thread = the Thread to wake up
@@ -370,7 +410,7 @@ public class Event
 				/* Unlock the pipe-pairs */
 				pipesLock.unlock();
 
-				throw new SnoozeError("Provided thread has yet to call wait() atleast once");
+				throw new FatalException(this, FatalError.NOTIFY_FAILURE, "Provided thread has yet to call wait() atleast once");
 			}	
 		}
 
@@ -380,6 +420,10 @@ public class Event
 
 	/** 
 	 * Wakes up all threads waiting on this event
+	 *
+	 * This can throw a `FatalException`
+	 * if the underlying mechanism fails
+	 * to notify
 	 */
 	public final void notifyAll()
 	{

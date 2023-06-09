@@ -2,7 +2,7 @@ module libsnooze.exceptions;
 
 import libsnooze.event : Event;
 
-public class SnoozeError : Exception
+public abstract class SnoozeError : Exception
 {
     this(string msg)
     {
