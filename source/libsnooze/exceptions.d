@@ -81,8 +81,20 @@ public enum FatalError
  */
 public final class FatalException : SnoozeError
 {
+    /** 
+     * The sub-kind of error
+     */
     private FatalError fatalType;
 
+    /** 
+     * Constructs a new `FatalException` with the provided
+     * associated `Event, the sub-kind of error and an optional
+     * error message
+     *
+     * Params:
+     *   e = the `Event` on which the error occurred
+     *   fatalType = the sub-kind of error as a `FatalError`
+     */
     package this(Event e, FatalError fatalType, string extra = "")
     {
         string msg;
@@ -100,6 +112,11 @@ public final class FatalException : SnoozeError
         this.fatalType = fatalType;
     }
 
+    /** 
+     * Returns the sub-kind of error
+     *
+     * Returns: the `FatalError`
+     */
     public FatalError getFatalType()
     {
         return fatalType;
