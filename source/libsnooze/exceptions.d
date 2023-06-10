@@ -2,7 +2,7 @@ module libsnooze.exceptions;
 
 public class SnoozeError : Exception
 {
-    this(string msg)
+    package this(string msg)
     {
         super(msg);
     }
