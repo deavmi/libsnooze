@@ -1,3 +1,6 @@
+/**
+ * Exception types
+ */
 module libsnooze.exceptions;
 
 public class SnoozeError : Exception
