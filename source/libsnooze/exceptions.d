@@ -15,14 +15,29 @@ public abstract class SnoozeError : Exception
  */
 public final class InterruptedException : SnoozeError
 {
+    /** 
+     * The `Event` with which the error occurred on
+     */
     private Event e;
 
+    /** 
+     * Constructs a new `InterruptedException` with
+     * provided `Event`
+     *
+     * Params:
+     *   e = the `Event` on which the error occurred
+     */
     this(Event e)
     {
         super("Interrupted whilst waiting on event '"~e.toString()~"'");
         this.e = e;
     }
 
+    /** 
+     * Returns the `Event` with with this error occurred
+     *
+     * Returns: the event
+     */
     public Event getEvent()
     {
         return e;
