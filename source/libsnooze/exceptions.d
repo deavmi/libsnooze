@@ -4,7 +4,7 @@ import libsnooze.event : Event;
 
 public abstract class SnoozeError : Exception
 {
-    this(string msg)
+    package this(string msg)
     {
         super(msg);
     }
@@ -27,7 +27,7 @@ public final class InterruptedException : SnoozeError
      * Params:
      *   e = the `Event` on which the error occurred
      */
-    this(Event e)
+    package this(Event e)
     {
         super("Interrupted whilst waiting on event '"~e.toString()~"'");
         this.e = e;
@@ -70,7 +70,7 @@ public final class FatalException : SnoozeError
 {
     private FatalError fatalType;
 
-    this(Event e, FatalError fatalType, string extra = "")
+    package this(Event e, FatalError fatalType, string extra = "")
     {
         string msg;
         if(fatalType == FatalError.NOTIFY_FAILURE)
