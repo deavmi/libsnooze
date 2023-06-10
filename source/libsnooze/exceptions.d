@@ -1,9 +1,22 @@
+/**
+ * Exception types
+ */
 module libsnooze.exceptions;
 
 import libsnooze.event : Event;
 
+/** 
+ * The general libsnooze error type
+ */
 public abstract class SnoozeError : Exception
 {
+    /** 
+     * Constructs a new `SnoozeError` with the provided
+     * error message
+     *
+     * Params:
+     *   msg = the error message
+     */
     package this(string msg)
     {
         super(msg);
