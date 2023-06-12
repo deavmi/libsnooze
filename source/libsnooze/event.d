@@ -245,7 +245,7 @@ public class Event
 		{
 			/* Get the read end and read 1 byte (won't block) */
 			byte singleBuff;
-			ptrdiff_t readCount = read(readFD, &singleBuff, 1);
+			ptrdiff_t readCount = read(readFD, &singleBuff, 1); // TODO: We could get EINTR'd here too
 
 			/* If we did not read 1 byte then there was an error (either 1 or -1) */
 			if(readCount != 1)
