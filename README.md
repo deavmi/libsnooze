@@ -56,8 +56,17 @@ class TestThread : Thread
     public void worker()
     {
         writeln("("~to!(string)(Thread.getThis().id())~") Thread is waiting...");
-        event.wait();
-        writeln("("~to!(string)(Thread.getThis().id())~") Thread is waiting... [done]");
+
+        try
+        {
+            /* Wait */
+            event.wait();
+            writeln("("~to!(string)(Thread.getThis().id())~") Thread is waiting... [done]");
+        }
+        catch(InterruptedException e)
+        {
+            writeln("Had an interrupt");
+        }
     }
 }
 
