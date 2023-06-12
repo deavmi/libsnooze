@@ -1,3 +1,6 @@
+/**
+ * The `Event` type and facilities
+ */
 module libsnooze.event;
 
 // TODO: Would be nice if this built without unit tests failing
