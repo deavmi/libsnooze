@@ -78,9 +78,9 @@ public class Event
 	 * `FatalException` is thrown on fatal error with
 	 * the underlying mechanism.
 	 */
-	// TODO: We should throw a `TimeoutException` on timeout
 	public final void wait()
 	{
+		/* Wait with no timeout (hence the null) */
 		wait(null);
 	}
 
