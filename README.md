@@ -40,7 +40,7 @@ Firstly we create an `Event` which is something that can be notified or awaited 
 Event myEvent = new Event();
 ```
 
-Now let's create a thread which consumes `myEvent` and waits on it:
+Now let's create a thread which consumes `myEvent` and waits on it (note, we have to catch an `InterruptedException` as a call to `wait()` can unblock due to a signal being received on the waiting thread):
 
 ```d
 class TestThread : Thread
