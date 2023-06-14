@@ -168,9 +168,6 @@ public class Event
 		/* Get the read-end of the pipe fd */
 		int readFD = pipePair[0];
 
-		// TODO: IO/queue block using select with a timeout
-		// select();
-
 		// NOTE: Not sure why but nfdsmust be the highest fd number that is being monitored+1
 		// ... so in our case that must be `pipePair[0]+1`
 
