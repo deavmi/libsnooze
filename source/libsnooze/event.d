@@ -171,8 +171,6 @@ public class Event
 		// NOTE: Not sure why but nfdsmust be the highest fd number that is being monitored+1
 		// ... so in our case that must be `pipePair[0]+1`
 
-		// Setup the fd_set for read fs struct
-
 		/** 
 		 * Setup the fd_set for read file descriptors
 		 * 
