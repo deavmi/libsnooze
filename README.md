@@ -40,7 +40,7 @@ Firstly we create an `Event` which is something that can be notified or awaited 
 Event myEvent = new Event();
 ```
 
-Now let's create a thread which consumes `myEvent` and waits on it (note, we have to catch an `InterruptedException` as a call to `wait()` can unblock due to a signal being received on the waiting thread):
+Now let's create a thread which consumes `myEvent` and waits on it. You will see that we wrap some exception catching around the call to `wait()`. We have to catch an `InterruptedException` as a call to `wait()` can unblock due to a signal being received on the waiting thread, normally you would model yoru program looping back to call `wait()` again. Also, if there is a problem with the underlying eventing system then a `FatalException` will be thrown and you should handle this by exiting your program or something.
 
 ```d
 class TestThread : Thread
@@ -65,7 +65,12 @@ class TestThread : Thread
         }
         catch(InterruptedException e)
         {
+            // NOTE: You can maybe retry your wait here
             writeln("Had an interrupt");
+        }
+        catch(FatalException e)
+        {
+            // NOTE: This is a FATAL error in the underlying eventing system, do not continue
         }
     }
 }
