@@ -103,7 +103,6 @@ public class Event
 		ensure(callingThread);
 	}
 
-	// TODO: have the `ensure()` call this one and put all logic in here
 	// TODO: DOcument exceptions
 
 	/** 
