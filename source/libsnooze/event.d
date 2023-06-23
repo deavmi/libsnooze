@@ -72,11 +72,12 @@ public class Event
 	/** 
 	 * Wait on this event indefinately
 	 *
-	 * This can throw `InterruptedException` if the
-	 * `wait()` was interrupted for some reason.
-	 *
-	 * `FatalException` is thrown on fatal error with
-	 * the underlying mechanism.
+	 * Throws:
+	 *   `InterruptedException` if the `wait()`
+	 * was interrupted for some reason
+	 * Throws:
+	 *   `FatalException` if a fatal error with
+	 * the underlying mechanism occurs
 	 */
 	public final void wait()
 	{
