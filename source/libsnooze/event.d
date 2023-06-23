@@ -93,6 +93,7 @@ public class Event
 	 * on their first call to wait instead of having `wait()`
 	 * ensure the pipe is created on first call.
 	 */
+	// TODO: DOcument exceptions
 	public final void ensure()
 	{
 		/* Get the thread object (TID) for the calling thread */
@@ -102,9 +103,19 @@ public class Event
 		ensure(callingThread);
 	}
 
-	// TODO: Add a version of the above which takes in a `Thread`
-	// ... but do this on a branch other than `feature/interruptible`
 	// TODO: have the `ensure()` call this one and put all logic in here
+	// TODO: DOcument exceptions
+
+	/** 
+	 * Ensures the existence of a pipe-pair for the provided
+	 * thread. This is normally called before the thread in
+	 * question would await the `Event` and before another
+	 * thread, presumably the one calling `notify(Thread)`,
+	 * would ever start doing so.
+	 *
+	 * Params:
+	 *   thread = the `Thread` to ensure a pipe entry for
+	 */
 	public final void ensure(Thread thread)
 	{
 		/* Lock the pipe-pairs */
