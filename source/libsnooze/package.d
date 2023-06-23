@@ -6,7 +6,7 @@ module libsnooze;
 /**
  * The `Event` type and facilities
  */
-public import libsnooze.event;
+public import libsnooze.event : Event;
 
 /**
  * Exception types
