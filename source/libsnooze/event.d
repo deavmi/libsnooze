@@ -379,6 +379,8 @@ public class Event
 	 *
 	 * Params:
 	 *   thread = the Thread to wake up
+	 * Throws:
+	 *   F
 	 */
 	public final void notify(Thread thread)
 	{
