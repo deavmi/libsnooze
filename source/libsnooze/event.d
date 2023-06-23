@@ -159,11 +159,12 @@ public class Event
 	 * if awoken, `false` on timeout (if specified as
 	 * non-zero).
 	 *
-	 * This can throw `InterruptedException` if the
-	 * `wait()` was interrupted for some reason.
-	 *
-	 * `FatalException` is thrown on fatal error with
-	 * the underlying mechanism.
+	 * Throws:
+	 *   `InterruptedException` if the `wait()` was
+	 * interrupted for some reason.
+	 * Throws:
+	 *   `FatalException` on fatal error with the
+	 * underlying mechanism.
 	 *
 	 * Params:
 	 *   timestruct = the `timeval*` to indicate timeout period
