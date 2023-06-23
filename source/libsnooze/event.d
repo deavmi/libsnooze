@@ -72,11 +72,12 @@ public class Event
 	/** 
 	 * Wait on this event indefinately
 	 *
-	 * This can throw `InterruptedException` if the
-	 * `wait()` was interrupted for some reason.
-	 *
-	 * `FatalException` is thrown on fatal error with
-	 * the underlying mechanism.
+	 * Throws:
+	 *   `InterruptedException` if the `wait()`
+	 * was interrupted for some reason
+	 * Throws:
+	 *   `FatalException` if a fatal error with
+	 * the underlying mechanism occurs
 	 */
 	public final void wait()
 	{
@@ -356,15 +357,15 @@ public class Event
 	 * Waits for the time specified, returning `true`
 	 * if awoken, `false` on timeout
 	 *
-	 * This can throw `InterruptedException` if the
-	 * `wait()` was interrupted for some reason.
-	 *
-	 * `FatalException` is thrown on fatal error with
-	 * the underlying mechanism.
-	 *
 	 * Params:
 	 *   duration = the `Duration` to indicate timeout period
 	 * Returns: `true` if awoken, `false` on timeout
+	 * Throws:
+	 *   `FatalException` on fatal error with the
+	 * underlying mechanism
+	 * Throws:
+	 *   `InterruptedException` if the `wait()` was
+	 * interrupted for some reason
 	 */
 	public final bool wait(Duration duration)
 	{
@@ -392,12 +393,11 @@ public class Event
 	/** 
 	 * Wakes up a single thread specified
 	 *
-	 * This can throw a `FatalException`
-	 * if the underlying mechanism fails
-	 * to notify
-	 *
 	 * Params:
 	 *   thread = the Thread to wake up
+	 * Throws:
+	 *   `FatalException` if the underlying
+	 * mechanism failed to notify
 	 */
 	public final void notify(Thread thread)
 	{
@@ -439,9 +439,9 @@ public class Event
 	/** 
 	 * Wakes up all threads waiting on this event
 	 *
-	 * This can throw a `FatalException`
-	 * if the underlying mechanism fails
-	 * to notify
+	 * Throws:
+	 *   `FatalException` if the underlying
+	 * mechanism failed to notify
 	 */
 	public final void notifyAll()
 	{
@@ -484,6 +484,11 @@ version(unittest)
 	import std.stdio : writeln;
 }
 
+/**
+ * Basic example of two threads, `thread1` and `thread2`,
+ * which will wait on the `event`. We will then, from the
+ * main thread, notify them all (causing them all to wake up)
+ */
 unittest
 {
 	Event event = new Event();
@@ -526,6 +531,11 @@ unittest
 	thread2.join();
 }
 
+/**
+ * An example of trying to `notify()` a thread
+ * which isn't registered (has never been `ensure()`'d
+ * or had `wait()` called from it at least once)
+ */
 unittest
 {
 	Event event = new Event();
@@ -554,6 +564,12 @@ unittest
 	}
 }
 
+/**
+ * Here we have an example of a thread which waits
+ * on `event` but never gets notified but because
+ * we are using a timeout-based wait it will unblock
+ * after the timeout
+ */
 unittest
 {
 	Event event = new Event();
