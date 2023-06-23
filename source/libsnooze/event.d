@@ -465,6 +465,11 @@ version(unittest)
 	import std.stdio : writeln;
 }
 
+/**
+ * Basic example of two threads, `thread1` and `thread2`,
+ * which will wait on the `event`. We will then, from the
+ * main thread, notify them all (causing them all to wake up)
+ */
 unittest
 {
 	Event event = new Event();
@@ -507,6 +512,11 @@ unittest
 	thread2.join();
 }
 
+/**
+ * An example of trying to `notify()` a thread
+ * which isn't registered (has never been `ensure()`'d
+ * or had `wait()` called from it at least once)
+ */
 unittest
 {
 	Event event = new Event();
@@ -535,6 +545,12 @@ unittest
 	}
 }
 
+/**
+ * Here we have an example of a thread which waits
+ * on `event` but never gets notified but because
+ * we are using a timeout-based wait it will unblock
+ * after the timeout
+ */
 unittest
 {
 	Event event = new Event();
