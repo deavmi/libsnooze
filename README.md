@@ -1,17 +1,9 @@
-<p align="center">
-<img src="branding/logo.png" width=220>
-</p>
+![](branding/logo.png)
 
-<br>
-
-<h1 align="center">libsnooze</h1>
-
-<h3 align="center"><i><b>A wait/notify mechanism for D</i></b></h3>
+# libsnooze
+## **_A wait/notify mechanism for D_**
 
 ---
-
-<br>
-<br>
 
 [![D](https://github.com/deavmi/libsnooze/actions/workflows/d.yml/badge.svg)](https://github.com/deavmi/libsnooze/actions/workflows/d.yml)
 
