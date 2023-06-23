@@ -373,15 +373,11 @@ public class Event
 	/** 
 	 * Wakes up a single thread specified
 	 *
-	 * This can throw a `FatalException`
-	 * if the underlying mechanism fails
-	 * to notify
-	 *
 	 * Params:
 	 *   thread = the Thread to wake up
 	 * Throws:
-	 *   FatalException = if the underlying
-	 * mechanism failsd to notify
+	 *   `FatalException` if the underlying
+	 * mechanism failed to notify
 	 */
 	public final void notify(Thread thread)
 	{
@@ -423,9 +419,9 @@ public class Event
 	/** 
 	 * Wakes up all threads waiting on this event
 	 *
-	 * This can throw a `FatalException`
-	 * if the underlying mechanism fails
-	 * to notify
+	 * Throws:
+	 *   `FatalException` if the underlying
+	 * mechanism failed to notify
 	 */
 	public final void notifyAll()
 	{
