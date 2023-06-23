@@ -109,6 +109,14 @@ public class Event
 		pipesLock.unlock();
 	}
 
+	// TODO: Add a version of the above which takes in a `Thread`
+	// ... but do this on a branch other than `feature/interruptible`
+	// TODO: have the `ensure()` call this one and put all logic in here
+	public final void ensure(Thread thread)
+	{
+		// TODO: Implement me
+	}
+
 
 	// TODO: Make this a method we can call actually
 	private int[2] pipeExistenceEnsure(Thread thread)
