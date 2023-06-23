@@ -380,7 +380,8 @@ public class Event
 	 * Params:
 	 *   thread = the Thread to wake up
 	 * Throws:
-	 *   F
+	 *   FatalException = if the underlying
+	 * mechanism failsd to notify
 	 */
 	public final void notify(Thread thread)
 	{
