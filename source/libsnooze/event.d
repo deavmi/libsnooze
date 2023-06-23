@@ -337,15 +337,14 @@ public class Event
 	 * Waits for the time specified, returning `true`
 	 * if awoken, `false` on timeout
 	 *
-	 * This can throw `InterruptedException` if the
-	 * `wait()` was interrupted for some reason.
-	 *
-	 * `FatalException` is thrown on fatal error with
-	 * the underlying mechanism.
-	 *
 	 * Params:
 	 *   duration = the `Duration` to indicate timeout period
 	 * Returns: `true` if awoken, `false` on timeout
+	 * Throws:
+	 *   `FatalException` on fatal error with the
+	 * underlying mechanism
+	 *   `InterruptedException` if the `wait()` was
+	 * interrupted for some reason
 	 */
 	public final bool wait(Duration duration)
 	{
