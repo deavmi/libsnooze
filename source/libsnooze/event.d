@@ -343,6 +343,7 @@ public class Event
 	 * Throws:
 	 *   `FatalException` on fatal error with the
 	 * underlying mechanism
+	 * Throws:
 	 *   `InterruptedException` if the `wait()` was
 	 * interrupted for some reason
 	 */
