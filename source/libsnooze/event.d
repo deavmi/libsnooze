@@ -98,15 +98,8 @@ public class Event
 		/* Get the thread object (TID) for the calling thread */
 		Thread callingThread = Thread.getThis();
 
-		/* Lock the pipe-pairs */
-		pipesLock.lock();
-
-		/* Checks if a pipe-pair exists, if not creates it */
-		// TODO: Add a catch here, then unlock, rethrow
-		int[2] pipePair = pipeExistenceEnsure(callingThread);
-
-		/* Unlock the pipe-pairs */
-		pipesLock.unlock();
+		/* Ensure the calling thread */
+		ensure(callingThread);
 	}
 
 	// TODO: Add a version of the above which takes in a `Thread`
@@ -114,7 +107,15 @@ public class Event
 	// TODO: have the `ensure()` call this one and put all logic in here
 	public final void ensure(Thread thread)
 	{
-		// TODO: Implement me
+		/* Lock the pipe-pairs */
+		pipesLock.lock();
+
+		/* Checks if a pipe-pair exists, if not creates it */
+		// TODO: Add a catch here, then unlock, rethrow
+		int[2] pipePair = pipeExistenceEnsure(thread);
+
+		/* Unlock the pipe-pairs */
+		pipesLock.unlock();
 	}
 
 
