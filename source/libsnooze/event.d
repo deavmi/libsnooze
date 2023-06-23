@@ -90,7 +90,7 @@ public class Event
 	 *
 	 * This can be useful if one wants to initialize several
 	 * threads that should be able to all be notified and wake up
-	 * on their first call to wait instead of having wait
+	 * on their first call to wait instead of having `wait()`
 	 * ensure the pipe is created on first call.
 	 */
 	public final void ensure()
