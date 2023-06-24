@@ -441,6 +441,13 @@ public class Event
 		pipesLock.unlock();
 	}
 
+	/** 
+	 * Creates a new pipe-pair and returns it
+	 *
+	 * Throws:
+	 *   `FatalException` on error creating the pipe
+	 * Returns: the pipe-pair as an `int[]`
+	 */
 	private int[2] newPipe()
 	{
 		/* Allocate space for the two FDs */
