@@ -93,8 +93,11 @@ public class Event
 	 * threads that should be able to all be notified and wake up
 	 * on their first call to wait instead of having `wait()`
 	 * ensure the pipe is created on first call.
+	 *
+	 * Throws:
+	 *   `FatalException` on creating the pipe-pair
+	 * if needs be
 	 */
-	// TODO: DOcument exceptions
 	public final void ensure()
 	{
 		/* Get the thread object (TID) for the calling thread */
@@ -103,8 +106,6 @@ public class Event
 		/* Ensure the calling thread */
 		ensure(callingThread);
 	}
-
-	// TODO: DOcument exceptions
 
 	/** 
 	 * Ensures the existence of a pipe-pair for the provided
@@ -115,22 +116,28 @@ public class Event
 	 *
 	 * Params:
 	 *   thread = the `Thread` to ensure a pipe entry for
+	 * Throws:
+	 *   `FatalException` on creating the pipe-pair
+	 * if needs be
 	 */
 	public final void ensure(Thread thread)
 	{
-		/* Lock the pipe-pairs */
-		pipesLock.lock();
-
 		/* Checks if a pipe-pair exists, if not creates it */
-		// TODO: Add a catch here, then unlock, rethrow
-		int[2] pipePair = pipeExistenceEnsure(thread);
-
-		/* Unlock the pipe-pairs */
-		pipesLock.unlock();
+		pipeExistenceEnsure(callingThread);
 	}
 
-
-	// TODO: Make this a method we can call actually
+	/** 
+	 * Returns the pipe-pair for the mapped `Thread`
+	 * provided. if one does not exist then it is
+	 * created first and then returned.
+	 *
+	 * Throws:
+	 *   `FatalException` on creating the pipe-pair
+	 * if needs be
+	 * Params:
+	 *   thread = the `Thread` to ensure for
+	 * Returns: the pipe-pair as an `int[]`
+	 */
 	private int[2] pipeExistenceEnsure(Thread thread)
 	{
 		int[2] pipePair;
@@ -138,18 +145,21 @@ public class Event
 		/* Lock the pipe-pairs */
 		pipesLock.lock();
 
+		/* On successful return or error */
+		scope(exit)
+		{
+			/* Unlock the pipe-pairs */
+			pipesLock.unlock();
+		}
+
 		/* If it is not in the pair, create a pipe-pair and save it */
 		if(!(thread in pipes))
 		{
-			// TODO: Add a catch here, then unlock then rethrow
-			pipes[thread] = newPipe();  //TODO: If bad (exception) use scopre guard too
+			pipes[thread] = newPipe();
 		}
 
 		/* Grab the pair */
 		pipePair = pipes[thread];
-
-		/* Unlock the pipe-pairs */
-		pipesLock.unlock();
 
 		return pipePair;
 	}
@@ -175,15 +185,8 @@ public class Event
 		/* Get the thread object (TID) for the calling thread */
 		Thread callingThread = Thread.getThis();
 
-		/* Lock the pipe-pairs */
-		pipesLock.lock();
-
 		/* Checks if a pipe-pair exists, if not creates it */
-		// TODO: Add a catch here, then unlock, rethrow
 		int[2] pipePair = pipeExistenceEnsure(callingThread);
-
-		/* Unlock the pipe-pairs */
-		pipesLock.unlock();
 
 
 		/* Get the read-end of the pipe fd */
@@ -297,15 +300,8 @@ public class Event
 		/* Get the thread object (TID) for the calling thread */
 		Thread callingThread = Thread.getThis();
 
-		/* Lock the pipe-pairs */
-		pipesLock.lock();
-
 		/* Checks if a pipe-pair exists, if not creates it */
-		// TODO: Add a catch here, then unlock, rethrow
 		int[2] pipePair = pipeExistenceEnsure(callingThread);
-
-		/* Unlock the pipe-pairs */
-		pipesLock.unlock();
 
 
 		/* Get the read-end of the pipe fd */
@@ -460,12 +456,19 @@ public class Event
 		pipesLock.unlock();
 	}
 
+	/** 
+	 * Creates a new pipe-pair and returns it
+	 *
+	 * Throws:
+	 *   `FatalException` on error creating the pipe
+	 * Returns: the pipe-pair as an `int[]`
+	 */
 	private int[2] newPipe()
 	{
 		/* Allocate space for the two FDs */
 		int[2] pipePair;
 
-		// /* Create a new pipe and put the fd of the read end in [0] and write end in [1] */
+		/* Create a new pipe and put the fd of the read end in [0] and write end in [1] */
 		int status = pipe(pipePair.ptr);
 
 		/* If the pipe creation failed */
