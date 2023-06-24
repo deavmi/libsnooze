@@ -88,7 +88,7 @@ public final class FatalException : SnoozeError
 
     /** 
      * Constructs a new `FatalException` with the provided
-     * associated `Event, the sub-kind of error and an optional
+     * associated `Event`, the sub-kind of error and an optional
      * error message
      *
      * Params:

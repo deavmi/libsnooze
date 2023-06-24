@@ -1,15 +1,15 @@
 ![](branding/logo.png)
 
 # libsnooze
-## **_A wait/notify mechanism for D_**
+## _A wait/notify mechanism for D_
 
 ---
 
-[![D](https://github.com/deavmi/libsnooze/actions/workflows/d.yml/badge.svg)](https://github.com/deavmi/libsnooze/actions/workflows/d.yml)
+[![D](https://github.com/deavmi/libsnooze/actions/workflows/d.yml/badge.svg)](https://github.com/deavmi/libsnooze/actions/workflows/d.yml) ![DUB](https://img.shields.io/dub/v/libsnooze?color=%23c10000ff%20&style=flat-square) ![DUB](https://img.shields.io/dub/dt/libsnooze?style=flat-square) ![DUB](https://img.shields.io/dub/l/libsnooze?style=flat-square)
 
 ## API
 
-To see the full documentation (which is always up-to-date) check it out on [DUB](https://libsnooze.dpldocs.info/).
+To see the full documentation (which is always up-to-date) check it out on [DUB](https://libsnooze.dpldocs.info/1.0.16-beta/).
 
 ## Usage
 
