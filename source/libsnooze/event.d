@@ -93,6 +93,10 @@ public class Event
 	 * threads that should be able to all be notified and wake up
 	 * on their first call to wait instead of having wait
 	 * ensure the pipe is created on first call.
+	 *
+	 * Throws:
+	 *   `FatalException` on creating the pipe-pair
+	 * if needs be
 	 */
 	public final void ensure()
 	{
