@@ -12,5 +12,3 @@ public import libsnooze.event : Event;
  * Exception types
  */
 public import libsnooze.exceptions;
-
-public import clib;
