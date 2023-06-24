@@ -110,9 +110,6 @@ public class Event
 		pipesLock.unlock();
 	}
 
-
-	// TODO: Make this a method we can call actually
-
 	/** 
 	 * Returns the pipe-pair for the mapped `Thread`
 	 * provided. if one does not exist then it is
