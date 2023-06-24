@@ -123,7 +123,7 @@ public class Event
 	public final void ensure(Thread thread)
 	{
 		/* Checks if a pipe-pair exists, if not creates it */
-		pipeExistenceEnsure(callingThread);
+		pipeExistenceEnsure(thread);
 	}
 
 	/** 
