@@ -287,15 +287,8 @@ public class Event
 		/* Get the thread object (TID) for the calling thread */
 		Thread callingThread = Thread.getThis();
 
-		/* Lock the pipe-pairs */
-		pipesLock.lock();
-
 		/* Checks if a pipe-pair exists, if not creates it */
-		// TODO: Add a catch here, then unlock, rethrow
 		int[2] pipePair = pipeExistenceEnsure(callingThread);
-
-		/* Unlock the pipe-pairs */
-		pipesLock.unlock();
 
 
 		/* Get the read-end of the pipe fd */
