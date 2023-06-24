@@ -112,6 +112,19 @@ public class Event
 
 
 	// TODO: Make this a method we can call actually
+
+	/** 
+	 * Returns the pipe-pair for the mapped `Thread`
+	 * provided. if one does not exist then it is
+	 * created first and then returned.
+	 *
+	 * Throws:
+	 *   `FatalException` on creating the pipe-pair
+	 * if needs be
+	 * Params:
+	 *   thread = the `Thread` to ensure for
+	 * Returns: the pipe-pair as an `int[]`
+	 */
 	private int[2] pipeExistenceEnsure(Thread thread)
 	{
 		int[2] pipePair;
@@ -453,7 +466,7 @@ public class Event
 		/* Allocate space for the two FDs */
 		int[2] pipePair;
 
-		// /* Create a new pipe and put the fd of the read end in [0] and write end in [1] */
+		/* Create a new pipe and put the fd of the read end in [0] and write end in [1] */
 		int status = pipe(pipePair.ptr);
 
 		/* If the pipe creation failed */
