@@ -132,18 +132,21 @@ public class Event
 		/* Lock the pipe-pairs */
 		pipesLock.lock();
 
+		/* On successful return or error */
+		scope(exit)
+		{
+			/* Unlock the pipe-pairs */
+			pipesLock.unlock();
+		}
+
 		/* If it is not in the pair, create a pipe-pair and save it */
 		if(!(thread in pipes))
 		{
-			// TODO: Add a catch here, then unlock then rethrow
-			pipes[thread] = newPipe();  //TODO: If bad (exception) use scopre guard too
+			pipes[thread] = newPipe();
 		}
 
 		/* Grab the pair */
 		pipePair = pipes[thread];
-
-		/* Unlock the pipe-pairs */
-		pipesLock.unlock();
 
 		return pipePair;
 	}
