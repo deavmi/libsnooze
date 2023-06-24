@@ -9,7 +9,7 @@
 
 ## API
 
-To see the full documentation (which is always up-to-date) check it out on [DUB](https://libsnooze.dpldocs.info/).
+To see the full documentation (which is always up-to-date) check it out on [DUB](https://libsnooze.dpldocs.info/1.0.16-beta/).
 
 ## Usage
 
