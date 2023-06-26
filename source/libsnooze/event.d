@@ -539,7 +539,6 @@ unittest
 
 	writeln("Main thread is going to notify two threads");
 
-
 	// TODO: Add assert to check
 
 	/* Wake up all sleeping on this event */
