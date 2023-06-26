@@ -492,6 +492,19 @@ version(unittest)
  * Basic example of two threads, `thread1` and `thread2`,
  * which will wait on the `event`. We will then, from the
  * main thread, notify them all (causing them all to wake up)
+ *
+ * Note that when we construct the threads which will
+ * call `wait()`, we call `ensure(this)`. This is to
+ * make a mapping between that thread (the `this`)
+ * and a new pipe-pair which it can use then.
+ *
+ * Calling `wait()` would ensure it but we might have
+ * the main thread race down to call notify()
+ * BEFORE the pipe-pair is created and the thread
+ * would never receive the notification.
+ *
+ * It is standard practice to build your `wait()`ing
+ * thread object in this manner
  */
 unittest
 {
@@ -505,6 +518,9 @@ unittest
 		{
 			super(&worker);
 			this.event = event;
+
+			// Ensure ourselves
+			this.event.ensure(this);
 		}
 
 		public void worker()
@@ -521,7 +537,6 @@ unittest
 	TestThread thread2 = new TestThread(event);
 	thread2.start();
 
-	Thread.sleep(dur!("seconds")(10));
 	writeln("Main thread is going to notify two threads");
 
 
@@ -586,6 +601,7 @@ unittest
 		{
 			super(&worker);
 			this.event = event;
+			this.event.ensure(this);
 		}
 
 		public void worker()
