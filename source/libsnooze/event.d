@@ -91,7 +91,7 @@ public class Event
 	 *
 	 * This can be useful if one wants to initialize several
 	 * threads that should be able to all be notified and wake up
-	 * on their first call to wait instead of having wait
+	 * on their first call to wait instead of having `wait()`
 	 * ensure the pipe is created on first call.
 	 *
 	 * Throws:
@@ -103,8 +103,27 @@ public class Event
 		/* Get the thread object (TID) for the calling thread */
 		Thread callingThread = Thread.getThis();
 
+		/* Ensure the calling thread */
+		ensure(callingThread);
+	}
+
+	/** 
+	 * Ensures the existence of a pipe-pair for the provided
+	 * thread. This is normally called before the thread in
+	 * question would await the `Event` and before another
+	 * thread, presumably the one calling `notify(Thread)`,
+	 * would ever start doing so.
+	 *
+	 * Params:
+	 *   thread = the `Thread` to ensure a pipe entry for
+	 * Throws:
+	 *   `FatalException` on creating the pipe-pair
+	 * if needs be
+	 */
+	public final void ensure(Thread thread)
+	{
 		/* Checks if a pipe-pair exists, if not creates it */
-		pipeExistenceEnsure(callingThread);
+		pipeExistenceEnsure(thread);
 	}
 
 	/** 
@@ -473,6 +492,19 @@ version(unittest)
  * Basic example of two threads, `thread1` and `thread2`,
  * which will wait on the `event`. We will then, from the
  * main thread, notify them all (causing them all to wake up)
+ *
+ * Note that when we construct the threads which will
+ * call `wait()`, we call `ensure(this)`. This is to
+ * make a mapping between that thread (the `this`)
+ * and a new pipe-pair which it can use then.
+ *
+ * Calling `wait()` would ensure it but we might have
+ * the main thread race down to call notify()
+ * BEFORE the pipe-pair is created and the thread
+ * would never receive the notification.
+ *
+ * It is standard practice to build your `wait()`ing
+ * thread object in this manner
  */
 unittest
 {
@@ -486,6 +518,9 @@ unittest
 		{
 			super(&worker);
 			this.event = event;
+
+			// Ensure ourselves
+			this.event.ensure(this);
 		}
 
 		public void worker()
@@ -502,9 +537,7 @@ unittest
 	TestThread thread2 = new TestThread(event);
 	thread2.start();
 
-	Thread.sleep(dur!("seconds")(10));
 	writeln("Main thread is going to notify two threads");
-
 
 	// TODO: Add assert to check
 
@@ -567,6 +600,7 @@ unittest
 		{
 			super(&worker);
 			this.event = event;
+			this.event.ensure(this);
 		}
 
 		public void worker()
