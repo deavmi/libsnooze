@@ -465,7 +465,7 @@ public class Event
 
 			/* Write a single byte to it */
 			byte wakeByte = 69;
-			long status = write(pipeWriteEnd, &wakeByte, 1);
+			ptrdiff_t status = write(pipeWriteEnd, &wakeByte, 1);
 			version(unittest)
 			{
 				writeln("write status: ", status);
