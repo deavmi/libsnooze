@@ -1,23 +1,15 @@
-<p align="center">
-<img src="branding/logo.png" width=220>
-</p>
+![](branding/logo.png)
 
-<br>
-
-<h1 align="center">libsnooze</h1>
-
-<h3 align="center"><i><b>A wait/notify mechanism for D</i></b></h3>
+# libsnooze
+## _A wait/notify mechanism for D_
 
 ---
 
-<br>
-<br>
-
-[![D](https://github.com/deavmi/libsnooze/actions/workflows/d.yml/badge.svg)](https://github.com/deavmi/libsnooze/actions/workflows/d.yml)
+[![D](https://github.com/deavmi/libsnooze/actions/workflows/d.yml/badge.svg)](https://github.com/deavmi/libsnooze/actions/workflows/d.yml) ![DUB](https://img.shields.io/dub/v/libsnooze?color=%23c10000ff%20&style=flat-square) ![DUB](https://img.shields.io/dub/dt/libsnooze?style=flat-square) ![DUB](https://img.shields.io/dub/l/libsnooze?style=flat-square)
 
 ## API
 
-To see the full documentation (which is always up-to-date) check it out on [DUB](https://libsnooze.dpldocs.info/).
+To see the full documentation (which is always up-to-date) check it out on [DUB](https://libsnooze.dpldocs.info/1.1.0-beta/).
 
 ## Usage
 
@@ -40,7 +32,7 @@ Firstly we create an `Event` which is something that can be notified or awaited 
 Event myEvent = new Event();
 ```
 
-Now let's create a thread which consumes `myEvent` and waits on it:
+Now let's create a thread which consumes `myEvent` and waits on it. You will see that we wrap some exception catching around the call to `wait()`. We have to catch an `InterruptedException` as a call to `wait()` can unblock due to a signal being received on the waiting thread, normally you would model yoru program looping back to call `wait()` again. Also, if there is a problem with the underlying eventing system then a `FatalException` will be thrown and you should handle this by exiting your program or something.
 
 ```d
 class TestThread : Thread
@@ -56,8 +48,22 @@ class TestThread : Thread
     public void worker()
     {
         writeln("("~to!(string)(Thread.getThis().id())~") Thread is waiting...");
-        event.wait();
-        writeln("("~to!(string)(Thread.getThis().id())~") Thread is waiting... [done]");
+
+        try
+        {
+            /* Wait */
+            event.wait();
+            writeln("("~to!(string)(Thread.getThis().id())~") Thread is waiting... [done]");
+        }
+        catch(InterruptedException e)
+        {
+            // NOTE: You can maybe retry your wait here
+            writeln("Had an interrupt");
+        }
+        catch(FatalException e)
+        {
+            // NOTE: This is a FATAL error in the underlying eventing system, do not continue
+        }
     }
 }
 

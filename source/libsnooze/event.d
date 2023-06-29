@@ -22,8 +22,9 @@ else
 
 import core.thread : Thread, Duration, dur;
 import core.sync.mutex : Mutex;
-import libsnooze.exceptions : SnoozeError;
+import libsnooze.exceptions;
 import std.conv : to;
+import core.stdc.errno;
 
 /** 
  * Represents an object you can wait and notify/notifyAll on
@@ -70,9 +71,17 @@ public class Event
 
 	/** 
 	 * Wait on this event indefinately
+	 *
+	 * Throws:
+	 *   `InterruptedException` if the `wait()`
+	 * was interrupted for some reason
+	 * Throws:
+	 *   `FatalException` if a fatal error with
+	 * the underlying mechanism occurs
 	 */
 	public final void wait()
 	{
+		/* Wait with no timeout (hence the null) */
 		wait(null);
 	}
 
@@ -82,27 +91,53 @@ public class Event
 	 *
 	 * This can be useful if one wants to initialize several
 	 * threads that should be able to all be notified and wake up
-	 * on their first call to wait instead of having wait
+	 * on their first call to wait instead of having `wait()`
 	 * ensure the pipe is created on first call.
+	 *
+	 * Throws:
+	 *   `FatalException` on creating the pipe-pair
+	 * if needs be
 	 */
 	public final void ensure()
 	{
 		/* Get the thread object (TID) for the calling thread */
 		Thread callingThread = Thread.getThis();
 
-		/* Lock the pipe-pairs */
-		pipesLock.lock();
-
-		/* Checks if a pipe-pair exists, if not creates it */
-		// TODO: Add a catch here, then unlock, rethrow
-		int[2] pipePair = pipeExistenceEnsure(callingThread);
-
-		/* Unlock the pipe-pairs */
-		pipesLock.unlock();
+		/* Ensure the calling thread */
+		ensure(callingThread);
 	}
 
+	/** 
+	 * Ensures the existence of a pipe-pair for the provided
+	 * thread. This is normally called before the thread in
+	 * question would await the `Event` and before another
+	 * thread, presumably the one calling `notify(Thread)`,
+	 * would ever start doing so.
+	 *
+	 * Params:
+	 *   thread = the `Thread` to ensure a pipe entry for
+	 * Throws:
+	 *   `FatalException` on creating the pipe-pair
+	 * if needs be
+	 */
+	public final void ensure(Thread thread)
+	{
+		/* Checks if a pipe-pair exists, if not creates it */
+		pipeExistenceEnsure(thread);
+	}
 
-	// TODO: Make this a method we can call actually
+	/** 
+	 * Returns the pipe-pair for the mapped `Thread`
+	 * provided. if one does not exist then it is
+	 * created first and then returned.
+	 *
+	 * Throws:
+	 *   `FatalException` on creating the pipe-pair
+	 * if needs be
+	 * Params:
+	 *   thread = the `Thread` to ensure for
+	 * Returns: the pipe-pair as an `int[]`
+	 */
 	private int[2] pipeExistenceEnsure(Thread thread)
 	{
 		int[2] pipePair;
@@ -110,49 +145,55 @@ public class Event
 		/* Lock the pipe-pairs */
 		pipesLock.lock();
 
+		/* On successful return or error */
+		scope(exit)
+		{
+			/* Unlock the pipe-pairs */
+			pipesLock.unlock();
+		}
+
 		/* If it is not in the pair, create a pipe-pair and save it */
 		if(!(thread in pipes))
 		{
-			// TODO: Add a catch here, then unlock then rethrow
-			pipes[thread] = newPipe();  //TODO: If bad (exception) use scopre guard too
+			pipes[thread] = newPipe();
 		}
 
 		/* Grab the pair */
 		pipePair = pipes[thread];
 
-		/* Unlock the pipe-pairs */
-		pipesLock.unlock();
-
 		return pipePair;
 	}
-
-	// NOTE: Returns true on woken, false on timeout
+	
+	/** 
+	 * Waits for the time specified, returning `true`
+	 * if awoken, `false` on timeout (if specified as
+	 * non-zero).
+	 *
+	 * Throws:
+	 *   `InterruptedException` if the `wait()` was
+	 * interrupted for some reason.
+	 * Throws:
+	 *   `FatalException` on fatal error with the
+	 * underlying mechanism.
+	 *
+	 * Params:
+	 *   timestruct = the `timeval*` to indicate timeout period
+	 * Returns: `true` if awoken, `false` on timeout
+	 */
 	private final bool wait(timeval* timestruct)
 	{
 		/* Get the thread object (TID) for the calling thread */
 		Thread callingThread = Thread.getThis();
 
-		/* Lock the pipe-pairs */
-		pipesLock.lock();
-
 		/* Checks if a pipe-pair exists, if not creates it */
-		// TODO: Add a catch here, then unlock, rethrow
 		int[2] pipePair = pipeExistenceEnsure(callingThread);
-
-		/* Unlock the pipe-pairs */
-		pipesLock.unlock();
 
 
 		/* Get the read-end of the pipe fd */
 		int readFD = pipePair[0];
 
-		// TODO: IO/queue block using select with a timeout
-		// select();
-
 		// NOTE: Not sure why but nfdsmust be the highest fd number that is being monitored+1
 		// ... so in our case that must be `pipePair[0]+1`
-
-		// Setup the fd_set for read fs struct
 
 		/** 
 		 * Setup the fd_set for read file descriptors
@@ -189,23 +230,47 @@ public class Event
 		{
 			return false;
 		}
-		/* On error */
+		/**
+		 * On error doing `select()`
+		 *
+		 * We check the `errno` as this could be an error resulting
+		 * from an unblock due to a signal having been received, in
+		 * that specific case we don't want to throw an error but rather
+		 * an interrupted exception.
+		 */
 		else if(status == -1)
 		{
-			// TODO: Here we need to check for errno (Weekend fix)
-			throw new SnoozeError("Error selecting pipe fd '"~to!(string)(readFD)~"' when trying to wait()"); 
+			// Retrieve the kind-of error
+			int errKind = errno();
+
+			version(dbg)
+			{
+				import std.stdio;
+				writeln("select() interrupted, errno: ", errKind);
+			}
+
+			// Handle as an interrupt
+			if(errKind == EINTR)
+			{
+				throw new InterruptedException(this);
+			}
+			// Anything else is a legitimate error
+			else
+			{
+				throw new FatalException(this, FatalError.WAIT_FAILURE, "Error selecting pipe fd '"~to!(string)(readFD)~"' when trying to wait(), got errno '"~to!(string)(errKind)); 
+			}
 		}
 		/* On success */
 		else
 		{
 			/* Get the read end and read 1 byte (won't block) */
 			byte singleBuff;
-			ptrdiff_t readCount = read(readFD, &singleBuff, 1);
+			ptrdiff_t readCount = read(readFD, &singleBuff, 1); // TODO: We could get EINTR'd here too
 
 			/* If we did not read 1 byte then there was an error (either 1 or -1) */
 			if(readCount != 1)
 			{
-				throw new SnoozeError("Error reading pipe fd '"~to!(string)(readFD)~"' when trying to wait()");
+				throw new FatalException(this, FatalError.WAIT_FAILURE, "Error reading pipe fd '"~to!(string)(readFD)~"' when trying to wait()");
 			}
 
 			return true;
@@ -235,15 +300,8 @@ public class Event
 		/* Get the thread object (TID) for the calling thread */
 		Thread callingThread = Thread.getThis();
 
-		/* Lock the pipe-pairs */
-		pipesLock.lock();
-
 		/* Checks if a pipe-pair exists, if not creates it */
-		// TODO: Add a catch here, then unlock, rethrow
 		int[2] pipePair = pipeExistenceEnsure(callingThread);
-
-		/* Unlock the pipe-pairs */
-		pipesLock.unlock();
 
 
 		/* Get the read-end of the pipe fd */
@@ -293,10 +351,18 @@ public class Event
 	}
 
 	/** 
-	 * Waits on the event with a given timeout
+	 * Waits for the time specified, returning `true`
+	 * if awoken, `false` on timeout
 	 *
 	 * Params:
-	 *   duration = the timeout
+	 *   duration = the `Duration` to indicate timeout period
+	 * Returns: `true` if awoken, `false` on timeout
+	 * Throws:
+	 *   `FatalException` on fatal error with the
+	 * underlying mechanism
+	 * Throws:
+	 *   `InterruptedException` if the `wait()` was
+	 * interrupted for some reason
 	 */
 	public final bool wait(Duration duration)
 	{
@@ -326,13 +392,23 @@ public class Event
 	 *
 	 * Params:
 	 *   thread = the Thread to wake up
+	 * Throws:
+	 *   `FatalException` if the underlying
+	 * mechanism failed to notify or the
+	 * `Thread` you are trying to wakeup doesn't
+	 * yet have a pipe-pair created for itself
 	 */
 	public final void notify(Thread thread)
 	{
-		// TODO: Throw error if the thread is not found
-
 		/* Lock the pipe-pairs */
 		pipesLock.lock();
+
+		/* On successful exit or exception throw */
+		scope(exit)
+		{
+			/* Unlock the pipe-pairs */
+			pipesLock.unlock();
+		}
 
 		/* If the thread provided is wait()-ing on this event */
 		if(thread in pipes)
@@ -353,24 +429,29 @@ public class Event
 			// TODO: Make this error configurable, maybe a non-fail mode should ne implementwd
 			if(!nonFail)
 			{
-				/* Unlock the pipe-pairs */
-				pipesLock.unlock();
-
-				throw new SnoozeError("Provided thread has yet to call wait() atleast once");
+				throw new FatalException(this, FatalError.NOTIFY_FAILURE, "Provided thread has yet to call wait() atleast once");
 			}	
 		}
-
-		/* Unlock the pipe-pairs */
-		pipesLock.unlock();
 	}
 
 	/** 
 	 * Wakes up all threads waiting on this event
+	 *
+	 * Throws:
+	 *   `FatalException` if the underlying
+	 * mechanism failed to notify
 	 */
 	public final void notifyAll()
 	{
 		/* Lock the pipe-pairs */
 		pipesLock.lock();
+
+		/* On successful exit or exception throw */
+		scope(exit)
+		{
+			/* Unlock the pipe-pairs */
+			pipesLock.unlock();
+		}
 
 		/* Loop through each thread */
 		foreach(Thread curThread; pipes.keys())
@@ -378,24 +459,28 @@ public class Event
 			/* Notify the current thread */
 			notify(curThread);
 		}
-
-		/* Unlock the pipe-pairs */
-		pipesLock.unlock();
 	}
 
+	/** 
+	 * Creates a new pipe-pair and returns it
+	 *
+	 * Throws:
+	 *   `FatalException` on error creating the pipe
+	 * Returns: the pipe-pair as an `int[]`
+	 */
 	private int[2] newPipe()
 	{
 		/* Allocate space for the two FDs */
 		int[2] pipePair;
 
-		// /* Create a new pipe and put the fd of the read end in [0] and write end in [1] */
+		/* Create a new pipe and put the fd of the read end in [0] and write end in [1] */
 		int status = pipe(pipePair.ptr);
 
 		/* If the pipe creation failed */
 		if(status != 0)
 		{
 			// Throw an exception is pipe creation failed
-			throw new SnoozeError("Could not initialize the pipe");
+			throw new FatalException(this, FatalError.WAIT_FAILURE, "Could not initialize the pipe");
 		}
 
 		return pipePair;
@@ -408,6 +493,24 @@ version(unittest)
 	import std.stdio : writeln;
 }
 
+/**
+ * Basic example of two threads, `thread1` and `thread2`,
+ * which will wait on the `event`. We will then, from the
+ * main thread, notify them all (causing them all to wake up)
+ *
+ * Note that when we construct the threads which will
+ * call `wait()`, we call `ensure(this)`. This is to
+ * make a mapping between that thread (the `this`)
+ * and a new pipe-pair which it can use then.
+ *
+ * Calling `wait()` would ensure it but we might have
+ * the main thread race down to call notify()
+ * BEFORE the pipe-pair is created and the thread
+ * would never receive the notification.
+ *
+ * It is standard practice to build your `wait()`ing
+ * thread object in this manner
+ */
 unittest
 {
 	Event event = new Event();
@@ -420,6 +523,9 @@ unittest
 		{
 			super(&worker);
 			this.event = event;
+
+			// Ensure ourselves
+			this.event.ensure(this);
 		}
 
 		public void worker()
@@ -436,9 +542,7 @@ unittest
 	TestThread thread2 = new TestThread(event);
 	thread2.start();
 
-	Thread.sleep(dur!("seconds")(10));
 	writeln("Main thread is going to notify two threads");
-
 
 	// TODO: Add assert to check
 
@@ -450,6 +554,11 @@ unittest
 	thread2.join();
 }
 
+/**
+ * An example of trying to `notify()` a thread
+ * which isn't registered (has never been `ensure()`'d
+ * or had `wait()` called from it at least once)
+ */
 unittest
 {
 	Event event = new Event();
@@ -478,6 +587,12 @@ unittest
 	}
 }
 
+/**
+ * Here we have an example of a thread which waits
+ * on `event` but never gets notified but because
+ * we are using a timeout-based wait it will unblock
+ * after the timeout
+ */
 unittest
 {
 	Event event = new Event();
@@ -490,6 +605,7 @@ unittest
 		{
 			super(&worker);
 			this.event = event;
+			this.event.ensure(this);
 		}
 
 		public void worker()
@@ -508,3 +624,5 @@ unittest
 	/* Wait for the thread to exit */
 	thread1.join();
 }
+
+// TODO: Interruption test
