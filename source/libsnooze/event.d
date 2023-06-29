@@ -446,15 +446,19 @@ public class Event
 		/* Lock the pipe-pairs */
 		pipesLock.lock();
 
+		/* On successful exit or exception throw */
+		scope(exit)
+		{
+			/* Unlock the pipe-pairs */
+			pipesLock.unlock();
+		}
+
 		/* Loop through each thread */
 		foreach(Thread curThread; pipes.keys())
 		{
 			/* Notify the current thread */
 			notify(curThread);
 		}
-
-		/* Unlock the pipe-pairs */
-		pipesLock.unlock();
 	}
 
 	/** 
