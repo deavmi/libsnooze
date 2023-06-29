@@ -15,7 +15,7 @@ version(release)
 }
 else
 {
-	import clib : pipe, write, read;
+	import clib : pipe, write, read, close;
 	import clib : select, fd_set, fdSetZero, fdSetSet;
 	import clib : timeval, time_t, suseconds_t;
 }
@@ -67,6 +67,41 @@ public class Event
 	{
 		/* Create a lock for the pipe-pair array */
 		pipesLock = new Mutex();
+	}
+
+	/** 
+	 * Diposes of this `Event` which
+	 * causes any threads waiting on
+	 * it to unlock and throw an
+	 * exception (TODO: test that),
+	 * after this the internal
+	 * resources are relinquished
+	 */
+	public void dispose()
+	{
+		/* Lock the pipe-pairs */
+		pipesLock.lock();
+
+		/* On successful return or error */
+		scope(exit)
+		{
+			/* Unlock the pipe-pairs */
+			pipesLock.unlock();
+		}
+
+		/**
+		 * Go through each pipe-pair and close
+		 * one side of it (TODO: closes both)
+		 * therefore closing the pipe
+		 */
+		foreach(Thread curThread; pipes.keys())
+		{
+			/* Extract the pipe-pair */
+			int[] pipePair = pipes[curThread];
+
+			/* Close the one end */
+			close(pipePair[0]);
+		}
 	}
 
 	/** 
