@@ -734,7 +734,7 @@ unittest
 
 	/* Ensure that we got an exception */
 	assert(foundException !is null);
-	// assert(foundE) TODO: Add further specificty checks
+	assert(cast(FatalException)foundException);
 
 	/* We should not be able to notify */
 	try
