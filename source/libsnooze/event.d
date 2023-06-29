@@ -745,7 +745,6 @@ unittest
 	catch(FatalException e)
 	{
 		assert(e.getFatalType() == FatalError.NOTIFY_FAILURE);
-		assert(true);
 	}
 	catch(SnoozeError)
 	{
