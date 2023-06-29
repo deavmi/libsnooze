@@ -661,3 +661,50 @@ unittest
 }
 
 // TODO: Interruption test
+
+/**
+ * Here we call `wait()` from our `thread1`
+ * and then on the main thread we call `dispose()`
+ */
+unittest
+{
+	Event event = new Event();
+
+	class TestThread : Thread
+	{
+		private Event event;
+
+		this(Event event)
+		{
+			super(&worker);
+			this.event = event;
+			this.event.ensure(this);
+		}
+
+		public void worker()
+		{
+			writeln("("~to!(string)(Thread.getThis().id())~") Thread is waiting...");
+
+			try
+			{
+				event.wait();
+			}
+			catch(SnoozeError e)
+			{
+				writeln("Yo: error on wait(): "~e.toString());
+			}
+		}
+	}
+
+	TestThread thread1 = new TestThread(event);
+	thread1.start();
+
+	// TODO: Other than looking, is there a way to confirm the exception is thrown?
+	// ... for the `wait()` and also is there a way to ensure the fd's are no longer
+	// ... present?
+
+	event.dispose();
+
+	/* Wait for the thread to exit */
+	thread1.join();
+}
