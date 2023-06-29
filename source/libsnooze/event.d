@@ -465,7 +465,17 @@ public class Event
 
 			/* Write a single byte to it */
 			byte wakeByte = 69;
-			write(pipeWriteEnd, &wakeByte, 1); // TODO: Collect status and if bad, unlock, throw exception
+			long status = write(pipeWriteEnd, &wakeByte, 1);
+			version(unittest)
+			{
+				writeln("write status: ", status);
+			}
+
+			/* On error writing */
+			if(status == -1)
+			{
+				throw new FatalException(this, FatalError.NOTIFY_FAILURE, "Cannot notify this thread, resource unavailable - event disposed maybe?");
+			}
 		}
 		/* If the thread provided is NOT wait()-ing on this event */
 		else
@@ -725,4 +735,21 @@ unittest
 	/* Ensure that we got an exception */
 	assert(foundException !is null);
 	// assert(foundE) TODO: Add further specificty checks
+
+	/* We should not be able to notify/nmotifyAll() */
+	try
+	{
+		event.notify(thread1);
+		assert(false);
+	}
+	catch(FatalException e)
+	{
+		assert(e.getFatalType() == FatalError.NOTIFY_FAILURE);
+		assert(true);
+	}
+	catch(SnoozeError)
+	{
+		assert(false);
+	}
+	
 }
