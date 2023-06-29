@@ -394,14 +394,21 @@ public class Event
 	 *   thread = the Thread to wake up
 	 * Throws:
 	 *   `FatalException` if the underlying
-	 * mechanism failed to notify
+	 * mechanism failed to notify or the
+	 * `Thread` you are trying to wakeup doesn't
+	 * yet have a pipe-pair created for itself
 	 */
 	public final void notify(Thread thread)
 	{
-		// TODO: Throw error if the thread is not found
-
 		/* Lock the pipe-pairs */
 		pipesLock.lock();
+
+		/* On successful exit or exception throw */
+		scope(exit)
+		{
+			/* Unlock the pipe-pairs */
+			pipesLock.unlock();
+		}
 
 		/* If the thread provided is wait()-ing on this event */
 		if(thread in pipes)
@@ -422,15 +429,9 @@ public class Event
 			// TODO: Make this error configurable, maybe a non-fail mode should ne implementwd
 			if(!nonFail)
 			{
-				/* Unlock the pipe-pairs */
-				pipesLock.unlock();
-
 				throw new FatalException(this, FatalError.NOTIFY_FAILURE, "Provided thread has yet to call wait() atleast once");
 			}	
 		}
-
-		/* Unlock the pipe-pairs */
-		pipesLock.unlock();
 	}
 
 	/** 
