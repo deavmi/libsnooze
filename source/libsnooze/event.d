@@ -736,10 +736,25 @@ unittest
 	assert(foundException !is null);
 	// assert(foundE) TODO: Add further specificty checks
 
-	/* We should not be able to notify/nmotifyAll() */
+	/* We should not be able to notify */
 	try
 	{
 		event.notify(thread1);
+		assert(false);
+	}
+	catch(FatalException e)
+	{
+		assert(e.getFatalType() == FatalError.NOTIFY_FAILURE);
+	}
+	catch(SnoozeError)
+	{
+		assert(false);
+	}
+
+	/* We should not be able to notifyAll() */
+	try
+	{
+		event.notifyAll();
 		assert(false);
 	}
 	catch(FatalException e)
