@@ -73,7 +73,8 @@ public class Event
 	 * Diposes of this `Event` which
 	 * causes any threads waiting on
 	 * it to unlock and throw an
-	 * exception (TODO: test that),
+	 * exception, prevents any notifying
+	 * or waiting further and
 	 * after this the internal
 	 * resources are relinquished
 	 */
@@ -90,16 +91,24 @@ public class Event
 		}
 
 		/**
-		 * Go through each pipe-pair and close
-		 * one side of it (TODO: closes both)
-		 * therefore closing the pipe
+		 * Go through each mapped pipe-pair
+		 * and close the write-end which
+		 * will cause any blockings reads
+		 * to unblock and return an error
+		 *
+		 * After this close the read-ends
+		 * so we can fully relinquish the
+		 * kernel object associated
 		 */
 		foreach(Thread curThread; pipes.keys())
 		{
 			/* Extract the pipe-pair */
 			int[] pipePair = pipes[curThread];
 
-			/* Close the one end */
+			/* Close the write-end */
+			close(pipePair[1]);
+
+			/* Close the read-end */
 			close(pipePair[0]);
 		}
 	}
@@ -704,6 +713,9 @@ unittest
 	// TODO: Other than looking, is there a way to confirm the exception is thrown?
 	// ... for the `wait()` and also is there a way to ensure the fd's are no longer
 	// ... present?
+
+
+	Thread.sleep(dur!("seconds")(2));
 
 	event.dispose();
 
