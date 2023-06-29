@@ -15,7 +15,7 @@ version(release)
 }
 else
 {
-	import clib : pipe, write, read;
+	import clib : pipe, write, read, close;
 	import clib : select, fd_set, fdSetZero, fdSetSet;
 	import clib : timeval, time_t, suseconds_t;
 }
@@ -67,6 +67,50 @@ public class Event
 	{
 		/* Create a lock for the pipe-pair array */
 		pipesLock = new Mutex();
+	}
+
+	/** 
+	 * Diposes of this `Event` which
+	 * causes any threads waiting on
+	 * it to unlock and throw an
+	 * exception, prevents any notifying
+	 * or waiting further and
+	 * after this the internal
+	 * resources are relinquished
+	 */
+	public void dispose()
+	{
+		/* Lock the pipe-pairs */
+		pipesLock.lock();
+
+		/* On successful return or error */
+		scope(exit)
+		{
+			/* Unlock the pipe-pairs */
+			pipesLock.unlock();
+		}
+
+		/**
+		 * Go through each mapped pipe-pair
+		 * and close the write-end which
+		 * will cause any blockings reads
+		 * to unblock and return an error
+		 *
+		 * After this close the read-ends
+		 * so we can fully relinquish the
+		 * kernel object associated
+		 */
+		foreach(Thread curThread; pipes.keys())
+		{
+			/* Extract the pipe-pair */
+			int[] pipePair = pipes[curThread];
+
+			/* Close the write-end */
+			close(pipePair[1]);
+
+			/* Close the read-end */
+			close(pipePair[0]);
+		}
 	}
 
 	/** 
@@ -421,7 +465,17 @@ public class Event
 
 			/* Write a single byte to it */
 			byte wakeByte = 69;
-			write(pipeWriteEnd, &wakeByte, 1); // TODO: Collect status and if bad, unlock, throw exception
+			ptrdiff_t status = write(pipeWriteEnd, &wakeByte, 1);
+			version(unittest)
+			{
+				writeln("write status: ", status);
+			}
+
+			/* On error writing */
+			if(status == -1)
+			{
+				throw new FatalException(this, FatalError.NOTIFY_FAILURE, "Cannot notify this thread, resource unavailable - event disposed maybe?");
+			}
 		}
 		/* If the thread provided is NOT wait()-ing on this event */
 		else
@@ -626,3 +680,90 @@ unittest
 }
 
 // TODO: Interruption test
+
+/**
+ * Here we call `wait()` from our `thread1`
+ * and then on the main thread we call `dispose()`
+ */
+unittest
+{
+	Event event = new Event();
+	SnoozeError foundException = null;
+
+	class TestThread : Thread
+	{
+		private Event event;
+
+		this(Event event)
+		{
+			super(&worker);
+			this.event = event;
+			this.event.ensure(this);
+		}
+
+		public void worker()
+		{
+			writeln("("~to!(string)(Thread.getThis().id())~") Thread is waiting...");
+
+			try
+			{
+				event.wait();
+			}
+			catch(SnoozeError e)
+			{
+				writeln("Yo: error on wait(): "~e.toString());
+				foundException = e;
+			}
+		}
+	}
+
+	TestThread thread1 = new TestThread(event);
+	thread1.start();
+
+	// TODO: Other than looking, is there a way to confirm the exception is thrown?
+	// ... for the `wait()` and also is there a way to ensure the fd's are no longer
+	// ... present?
+
+
+	Thread.sleep(dur!("seconds")(2));
+
+	event.dispose();
+
+	/* Wait for the thread to exit */
+	thread1.join();
+
+	/* Ensure that we got an exception */
+	assert(foundException !is null);
+	assert(cast(FatalException)foundException);
+
+	/* We should not be able to notify */
+	try
+	{
+		event.notify(thread1);
+		assert(false);
+	}
+	catch(FatalException e)
+	{
+		assert(e.getFatalType() == FatalError.NOTIFY_FAILURE);
+	}
+	catch(SnoozeError)
+	{
+		assert(false);
+	}
+
+	/* We should not be able to notifyAll() */
+	try
+	{
+		event.notifyAll();
+		assert(false);
+	}
+	catch(FatalException e)
+	{
+		assert(e.getFatalType() == FatalError.NOTIFY_FAILURE);
+	}
+	catch(SnoozeError)
+	{
+		assert(false);
+	}
+	
+}
