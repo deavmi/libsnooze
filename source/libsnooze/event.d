@@ -669,6 +669,7 @@ unittest
 unittest
 {
 	Event event = new Event();
+	SnoozeError foundException = null;
 
 	class TestThread : Thread
 	{
@@ -692,6 +693,7 @@ unittest
 			catch(SnoozeError e)
 			{
 				writeln("Yo: error on wait(): "~e.toString());
+				foundException = e;
 			}
 		}
 	}
@@ -707,4 +709,8 @@ unittest
 
 	/* Wait for the thread to exit */
 	thread1.join();
+
+	/* Ensure that we got an exception */
+	assert(foundException !is null);
+	// assert(foundE) TODO: Add further specificty checks
 }
