@@ -624,3 +624,5 @@ unittest
 	/* Wait for the thread to exit */
 	thread1.join();
 }
+
+// TODO: Interruption test
